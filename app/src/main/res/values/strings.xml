@@ -5,4 +5,6 @@
     <string name="question3">5-3=3</string>
     <string name="question4">Солнце это звезда?</string>
     <string name="question5">Луна это планета?</string>
+    <string name="correct">Да</string>
+    <string name="incorrect">Нет</string>
 </resources>

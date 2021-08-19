@@ -1,8 +1,8 @@
 package com.example.test;
 
 public class Question {
-    private int questionText;
-    private boolean answerTrue;
+    private final int questionText;
+    private final boolean answerTrue;
 
     public Question(int questionText, boolean answerTrue) {
         this.questionText = questionText;

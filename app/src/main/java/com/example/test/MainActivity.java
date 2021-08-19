@@ -1,19 +1,18 @@
 package com.example.test;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
     Button yesBtn;
     Button noBtn;
     TextView questionTextView;
-    Question[] questions =
+    final Question[] questions =
             {
                     new Question(R.string.question1, true),
                     new Question(R.string.question2, true),
