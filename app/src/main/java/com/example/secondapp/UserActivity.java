@@ -20,7 +20,7 @@ public class UserActivity extends AppCompatActivity {
         selectItem.setText(user.getName() + " " + user.getLastName() + "\n" + "Телефон: " + user.getPhone());
 
         Button delete = findViewById(R.id.delete);
-        Users users = new Users(this);
+        Users users = new Users();
         delete.setOnClickListener(view -> {
             users.deleteUser(user.getUuid());
             Intent intent = new Intent(this, MainActivity.class);

@@ -39,8 +39,8 @@ public class MainActivity extends AppCompatActivity { //класс, предст
     }
 
     private  void recyclerViewInit(){
-        Users users = new Users(this);
-        userList = users.getUserList();
+        Users users = new Users();
+        userList = users.getUserLists();
         userAdapter = new UserAdapter(userList);
         recyclerView.setAdapter(userAdapter);
     }

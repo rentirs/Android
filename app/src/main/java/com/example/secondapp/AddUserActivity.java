@@ -37,7 +37,7 @@ public class AddUserActivity extends AppCompatActivity {
             user.setName(name.getText().toString());
             user.setLastName(lastName.getText().toString());
             user.setPhone(phone.getText().toString());
-            Users users = new Users(this);
+            Users users = new Users();
             if (saveOrEdit.equals("add")) {
                 users.addUser(user);
             } else {

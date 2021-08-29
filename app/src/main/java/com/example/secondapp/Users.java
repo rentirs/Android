@@ -1,70 +1,95 @@
 package com.example.secondapp;
 
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-
-import com.example.secondapp.database.UserBaseHelper;
-import com.example.secondapp.database.UserDbSchema;
-
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.UUID;
 
 public class Users {
-    private final SQLiteDatabase database;
-
-    public Users(Context context) {
-        Context context1 = context.getApplicationContext();
-        this.database = new UserBaseHelper(context1).getWritableDatabase();
-    }
+    private final String HTTP = "152.70.168.210";
 
     public void addUser(User user) {
-        ContentValues values = getContentValues(user);
-        database.insert(UserDbSchema.UserTable.NAME, null, values);
-        database.close();
+        String host = "http://" + HTTP + "/handlerAddUser.php?" +
+                "name=" + user.getName() +
+                "&lastname=" + user.getLastName() +
+                "&phone=" + user.getPhone() +
+                "&uuid=" + user.getUuid().toString();
+        MyRunnable runnable = new MyRunnable(host, "addUser");
+        Thread t3 = new Thread(runnable);
+        t3.start();
     }
 
-    public void updateUser(User user){
-        ContentValues values = getContentValues(user);
-        String[] uuidArray = new String[] {user.getUuid().toString()};
-        database.update(UserDbSchema.UserTable.NAME, values, "uuid = ?", uuidArray);
-        database.close();
+    public void updateUser(User user) {
+        String host = "http://" + HTTP + "/handlerUpdateUser.php?" +
+                "name=" + user.getName() +
+                "&lastname=" + user.getLastName() +
+                "&phone=" + user.getPhone() +
+                "&uuid=" + user.getUuid().toString();
+        MyRunnable runnable = new MyRunnable(host, "updateUser");
+        Thread t4 = new Thread(runnable);
+        t4.start();
     }
 
-    public void deleteUser(UUID uuid){
-        String[] uuidArray = new String[] {uuid.toString()};
-        database.delete(UserDbSchema.UserTable.NAME, "uuid = ?", uuidArray);
-        database.close();
+    public void deleteUser(UUID uuid) {
+        System.out.println(uuid.toString());
+        String host = "http://" + HTTP + "/handlerDeleteUser.php?" + "uuid=" + uuid.toString();
+        MyRunnable runnable = new MyRunnable(host, "deleteUser");
+        Thread t2 = new Thread(runnable);
+        t2.start();
     }
 
-    private static ContentValues getContentValues(User user) {
-        ContentValues values = new ContentValues();
-        values.put(UserDbSchema.Cols.UUID, user.getUuid().toString());
-        values.put(UserDbSchema.Cols.NAME, user.getName());
-        values.put(UserDbSchema.Cols.LASTNAME, user.getLastName());
-        values.put(UserDbSchema.Cols.PHONE, user.getPhone());
-        return values;
+    public ArrayList<User> getUserLists() {
+        String host = "http://" + HTTP + "/handlerGetUsers.php";
+        MyRunnable runnable = new MyRunnable(host, "getUserLists");
+        Thread t1 = new Thread(runnable);
+        t1.start();
+        while (t1.isAlive()) {}
+        return runnable.getUserList();
     }
 
-    private UserCursorWrapper queryUsers(){
-        Cursor cursor = database.query(UserDbSchema.UserTable.NAME,null,null,null,null,null,null);
-        return new UserCursorWrapper(cursor);
-    }
-
-    public ArrayList<User> getUserList() {
-        ArrayList<User> userList = new ArrayList<>();
-        UserCursorWrapper cursorWrapper = queryUsers();
-        try {
-            cursorWrapper.moveToFirst();
-            while (!cursorWrapper.isAfterLast()){
-                User user = cursorWrapper.getUser();
-                userList.add(user);
-                cursorWrapper.moveToNext();
-            }
-        }finally {
-            cursorWrapper.close();
+    public static class MyRunnable implements Runnable {
+        private final String host;
+        private final String msgDoIt;
+        private final ArrayList<User> userList = new ArrayList<>();
+        public MyRunnable(String host, String msgDoIt) {
+            this.host = host;
+            this.msgDoIt = msgDoIt;
         }
-        return userList;
+        public synchronized ArrayList<User> getUserList() {
+            return userList;
+        }
+        @Override
+        public void run() {
+            try {
+                URL url = new URL(host);
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                InputStream is = urlConnection.getInputStream();
+                InputStreamReader reader = new InputStreamReader(is);
+                int i;
+                StringBuilder result = new StringBuilder();
+                while ((i = reader.read()) != -1) {
+                    result.append((char) i);
+                }
+                if(msgDoIt.equals("getUserLists")) {
+                    JSONArray jsonArray = new JSONArray(result.toString());
+                    for (int j = 0; j < jsonArray.length(); j++) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(j);
+                        UUID uuid = UUID.fromString(jsonObject.getString("uuid"));
+                        User user = new User(uuid);
+                        user.setName(jsonObject.getString("name"));
+                        user.setLastName(jsonObject.getString("lastname"));
+                        user.setPhone(jsonObject.getString("phone"));
+                        userList.add(user);
+                    }
+                }
+                System.out.println(result);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
